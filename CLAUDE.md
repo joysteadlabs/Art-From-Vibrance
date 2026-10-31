@@ -88,6 +88,11 @@ LIVE on https://sanjaydoc.github.io/nisha-gallery/
 - Razorpay restricts crypto/NFT-related payments: Nisha should tell Razorpay she sells art prints and check before taking NFT payments through it.
 
 ## Live status (2026-10-31)
+- **WORKING (founder confirmed 2026-10-31):** Nisha signs in (email + password), uploads save to her Supabase and stay after refresh.
+  Fix chain that got there: config.js filled (URL had '/rest/v1/' → stripped), setup SQL section 6 run, password set via SQL
+  (Supabase free email limit ~2/hour blocked sign-up mails), admin page now shows real DB errors, section 7 GRANTs (her project had
+  no default table privileges → 'permission denied for table').
+- Next: payments (Nisha's Cloudflare Worker from `worker/` + Razorpay keys + wallets), optional: turn off 'Confirm email' in Supabase.
 - Claude pushes directly: sanjaydoc is a Write collaborator + Claude GitHub App installed on joysteadlabs (2026-10-31).
 - Nisha's Supabase project `rzgizjhuzpbngnbhunhu` connected via docs/config.js (publishable key, public). Admin email: joysteadlabs@gmail.com
   (+ dr.sanjayanbu@gmail.com) in gallery_admins. Payments Worker not set up yet (api empty).
