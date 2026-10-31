@@ -217,7 +217,7 @@ const authMsg = (m: string) => /Invalid login credentials/i.test(m) ? 'Wrong ema
   : /already registered|already been registered/i.test(m) ? 'This email already has an account. Sign in instead, or use "Forgot password".'
   : /Password should be at least|weak/i.test(m) ? 'Choose a stronger password (at least 8 characters).'
   : /signups not allowed|Signups not allowed/i.test(m) ? 'New accounts are switched off in Supabase (Authentication → Sign In / Providers → Allow new users to sign up).'
-  : /rate limit|too many/i.test(m) ? 'Too many emails sent. Please wait a few minutes and try again.'
+  : /rate limit|too many/i.test(m) ? 'Too many emails sent (Supabase allows only a few per hour). Already have an account? Use the Sign in tab, it sends no email.'
   : m;
 export function AuthForms() {
   const [mode, setMode] = useState<Mode>(() => (isRecovery() ? 'reset' : 'in'));
