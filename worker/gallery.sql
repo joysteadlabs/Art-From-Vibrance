@@ -141,3 +141,18 @@ grant select on gallery_artworks_public, gallery_pay_public to anon, authenticat
 grant all on gallery_artworks, gallery_orders, gallery_settings, gallery_admins to service_role;
 grant usage, select on sequence gallery_nft_token_seq to service_role;
 grant execute on function public.gallery_is_admin() to anon, authenticated, service_role;
+
+-- 8) About & Contact pages (re-run safe). Edited in admin → "About & Contact"; shown on #/about and #/contact.
+alter table gallery_settings
+  add column if not exists about_heading     text    not null default '',
+  add column if not exists about_text        text    not null default '',
+  add column if not exists about_photo       text    not null default '',
+  add column if not exists city              text    not null default '',
+  add column if not exists contact_whatsapp  text    not null default '',
+  add column if not exists contact_email     text    not null default '',
+  add column if not exists contact_instagram text    not null default '',
+  add column if not exists show_commissions  boolean not null default true;
+create or replace view gallery_site_public as
+  select about_heading, about_text, about_photo, city, contact_whatsapp, contact_email, contact_instagram, show_commissions
+  from gallery_settings where id = 1;
+grant select on gallery_site_public to anon, authenticated;

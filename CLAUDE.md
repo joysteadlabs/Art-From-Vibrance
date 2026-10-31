@@ -93,6 +93,16 @@ LIVE on https://sanjaydoc.github.io/nisha-gallery/
   "In the carousel" thumbnail row. Auto-advances every 5 s; any manual pick stops it. Phone: painting on top, text below.
   Slides = artworks with on_home (admin Home page tab). Tests: scratchpad afvw/hero.mjs 23/23 (desktop + 390px, aspect kept).
 
+## Menu pages: Works · About · Contact (founder-approved mock HrJAPDACizRZAUeRb9dXvA row 2, built 2026-10-31)
+- Founder: "works, about, contact are not showing their respective pages". Now real routes `#/works`, `#/about`, `#/contact`
+  (src/Pages.tsx); the menu underlines the current page; footer links About · Contact. The old made-up mailto (nishagallery.com) is gone.
+- Works: full grid + filters (All · mediums found in the works' `medium` text: Oil/Acrylic/Watercolour/… · NFT available · New).
+- About/Contact content is Nisha's own, edited in admin → **About & Contact** tab (photo upload to `gallery` bucket, heading, story with
+  blank-line paragraphs, city, WhatsApp, email, Instagram, Commissions on/off). Empty fields are hidden; nothing invented.
+  Stored in `gallery_settings` (SQL **section 8** adds the columns + public view `gallery_site_public`); before section 8 runs the pages
+  say "coming soon" and the admin tab shows a banner with Save disabled. WhatsApp saved as +digits (wa.me link), Instagram as @handle.
+- Tests: scratchpad afvw/pages.mjs 29/29 (desktop + 390px), SQL section 8 on Postgres 16 without default privileges.
+
 ## Live status (2026-10-31)
 - **WORKING (founder confirmed 2026-10-31):** Nisha signs in (email + password), uploads save to her Supabase and stay after refresh.
   Fix chain that got there: config.js filled (URL had '/rest/v1/' → stripped), setup SQL section 6 run, password set via SQL

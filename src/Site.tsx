@@ -3,8 +3,10 @@ import { CHAINS, createOrder, inr, verifyOrder, type Artwork, type Chain, type M
 import { WallCard } from './Wall';
 import { evmAccount, explorer, hasEvmWallet, payEvm, payRazorpay, payUri, qrSvg } from './pay';
 
-export function Nav({ go }: { go: (h: string) => void }) {
-  return <nav className="ng-nav"><div className="ng-wrap"><b onClick={() => go('#/')}>Art From Vibrance</b><a className="on" onClick={() => go('#/')}>Works</a><a onClick={() => go('#/#about')}>About</a><a href="mailto:hello@nishagallery.com">Contact</a></div></nav>;
+export function Nav({ go, r }: { go: (h: string) => void; r: string }) {
+  const on = (p: string) => (r.startsWith(p) ? 'on' : undefined);
+  return <nav className="ng-nav" aria-label="Main"><div className="ng-wrap"><a className="ng-logo" href="#/" onClick={(e) => { e.preventDefault(); go('#/'); }}>Art From Vibrance</a>
+    {([['/works', 'Works'], ['/about', 'About'], ['/contact', 'Contact']] as const).map(([p, l]) => <a key={p} href={`#${p}`} className={on(p)} aria-current={on(p) ? 'page' : undefined} onClick={(e) => { e.preventDefault(); go(`#${p}`); }}>{l}</a>)}</div></nav>;
 }
 
 export function Home({ arts, go }: { arts: Artwork[]; go: (h: string) => void }) {
@@ -44,7 +46,7 @@ export function Home({ arts, go }: { arts: Artwork[]; go: (h: string) => void })
       {home.length > 1 && <div className="ng-wrap ng-thumbs"><span>In the carousel</span>{home.map((x, k) => <button key={x.id} aria-label={`Show ${x.title}`} className={k === i % n ? 'on' : ''} onClick={() => pick(k)}><img src={x.image_url} alt="" /></button>)}</div>}
     </> : <section className="ng-wrap ng-intro"><h1>Original works, in <em>two editions</em></h1></section>}
     <div className="ng-wrap">
-      <div className="ng-lead" id="about"><h2>Every work, two ways to own it</h2><p>A <b>normal copy</b>: an archival print, signed, delivered to your door. Or the <b>NFT copy</b>: one of one, owned on-chain, with the full-resolution original file. Pay by UPI or card, or with crypto.</p></div>
+      <div className="ng-lead"><h2>Every work, two ways to own it</h2><p>A <b>normal copy</b>: an archival print, signed, delivered to your door. Or the <b>NFT copy</b>: one of one, owned on-chain, with the full-resolution original file. Pay by UPI or card, or with crypto.</p></div>
       <WallCard arts={arts} go={go} />
       <div className="ng-filters">{([['all', 'All works'], ['nft', 'NFT available'], ['new', 'New']] as const).map(([k, l]) => <button key={k} className={f === k ? 'on' : ''} onClick={() => setF(k)}>{l}</button>)}</div>
       <div className="ng-grid">{list.map((a) => <button key={a.id} className="ng-w" onClick={() => go(`#/art/${a.slug}`)}>

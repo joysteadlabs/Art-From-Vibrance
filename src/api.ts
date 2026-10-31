@@ -1,7 +1,7 @@
 /* Talks to the gallery's own Worker (worker/worker.js, Nisha's Cloudflare). Addresses come from config.js.
    The Worker holds the Razorpay keys and the Supabase service key; this site holds nothing secret. */
 import { createClient } from '@supabase/supabase-js';
-import { CFG, DEMO, demoAuth, demoCall } from './demo';
+import { CFG, DEMO, demoAuth, demoCall, demoSite } from './demo';
 
 export const API = (CFG.api || '').replace(/\/+$/, '');
 // Public (publishable) Supabase key: used only for the admin's Google sign-in.
@@ -32,7 +32,10 @@ export type Order = {
   chain?: Chain; chainId?: number; coin?: string; network?: string; amount?: string; pay_to?: string; reference?: string;
 };
 export type Paid = { paid: true; order: string; edition: 'copy' | 'nft'; download: string; token?: number };
-export type Settings = { evm_wallet: string; btc_address: string; sol_address: string; royalty_pct: number; nft_contract: string };
+/** About & Contact page content (gallery_settings, public view gallery_site_public). Empty fields are hidden on the site. */
+export type SiteInfo = { about_heading: string; about_text: string; about_photo: string; city: string; contact_whatsapp: string; contact_email: string; contact_instagram: string; show_commissions: boolean };
+export const EMPTY_SITE: SiteInfo = { about_heading: '', about_text: '', about_photo: '', city: '', contact_whatsapp: '', contact_email: '', contact_instagram: '', show_commissions: true };
+export type Settings = { evm_wallet: string; btc_address: string; sol_address: string; royalty_pct: number; nft_contract: string } & Partial<SiteInfo>;
 export type AdminOrder = {
   id: string; edition: 'copy' | 'nft'; method: Method; amount_inr: number; crypto_amount: string; crypto_coin: string; status: string; fulfil_status: string;
   buyer_name: string; buyer_email: string; buyer_phone: string; ship_address: string; buyer_wallet: string; payment_ref: string | null; created_at: string; paid_at: string | null;
@@ -169,8 +172,23 @@ export const adminSaveSettings = async (p: Partial<Settings>): Promise<Settings>
   if (p.sol_address !== undefined) { if (p.sol_address && !/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(p.sol_address)) throw new Error('That Solana address does not look right.'); patch.sol_address = p.sol_address; }
   if (p.royalty_pct !== undefined) patch.royalty_pct = Math.min(20, Math.max(0, Math.round(Number(p.royalty_pct)) || 0));
   if (p.nft_contract !== undefined) patch.nft_contract = String(p.nft_contract).slice(0, 60);
+  for (const k of ['about_heading', 'about_photo', 'city'] as const) if (p[k] !== undefined) patch[k] = String(p[k]).trim().slice(0, k === 'about_photo' ? 500 : 120);
+  if (p.about_text !== undefined) patch.about_text = String(p.about_text).trim().slice(0, 6000);
+  if (p.contact_whatsapp !== undefined) { const d = waDigits(p.contact_whatsapp); if (d && (d.length < 10 || d.length > 15)) throw new Error('WhatsApp number: digits with country code, e.g. +91 98765 43210.'); patch.contact_whatsapp = d ? '+' + d : ''; }
+  if (p.contact_email !== undefined) { const e = p.contact_email.trim(); if (e && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) throw new Error('That email does not look right.'); patch.contact_email = e; }
+  if (p.contact_instagram !== undefined) { const h = igHandle(p.contact_instagram); if (h && !/^[A-Za-z0-9._]{1,30}$/.test(h)) throw new Error('Instagram: just the handle, e.g. @artfromvibrance.'); patch.contact_instagram = h ? '@' + h : ''; }
+  if (p.show_commissions !== undefined) patch.show_commissions = !!p.show_commissions;
   patch.updated_at = new Date().toISOString();
   const { data, error } = await supabase.from('gallery_settings').update(patch).eq('id', 1).select('*').single();
-  if (error) dbErr(error, 'Could not save');
+  if (error) { if (/about_|contact_|city|show_commissions/.test(error.message || '')) throw new Error('The About & Contact fields are not in the database yet: run section 8 of worker/gallery.sql in Supabase, then save again.'); dbErr(error, 'Could not save'); }
   return data as Settings;
 };
+
+/** Public About & Contact content. Never throws: missing setup (SQL section 8 not run yet) just shows empty pages. */
+export const getSiteInfo = async (): Promise<SiteInfo> => {
+  if (DEMO) return { ...EMPTY_SITE, ...demoSite() };
+  try { const { data, error } = await supabase.from('gallery_site_public').select('*').maybeSingle(); return error || !data ? EMPTY_SITE : { ...EMPTY_SITE, ...(data as Partial<SiteInfo>) }; }
+  catch { return EMPTY_SITE; }
+};
+export const waDigits = (n: string) => n.replace(/[^0-9]/g, '');
+export const igHandle = (h: string) => h.trim().replace(/^https?:\/\/(www\.)?instagram\.com\//i, '').replace(/^@/, '').replace(/[/?#].*$/, '');

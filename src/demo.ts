@@ -37,6 +37,7 @@ const ok = <T,>(data: unknown, status = 200) => ({ status, data: data as T });
 function fail(msg: string): never { throw new Error(msg); }
 const pub = ({ original_path, ...a }: any) => a;
 
+export const demoSite = () => ({ about_heading: S.set.about_heading ?? "Hello, I'm Nisha.", about_text: S.set.about_text ?? 'Sample text: the artist writes her story in the admin page.\n\nA second paragraph shows here.', about_photo: S.set.about_photo ?? '', city: S.set.city ?? 'Chennai, Tamil Nadu', contact_whatsapp: S.set.contact_whatsapp ?? '+919800000000', contact_email: S.set.contact_email ?? 'hello@example.com', contact_instagram: S.set.contact_instagram ?? '@artfromvibrance', show_commissions: S.set.show_commissions ?? true });
 export const demoAuth = {
   getSession: async () => ({ data: { session: { access_token: 'demo', user: { email: 'nisha@nishagallery.com' } } } }),
   onAuthStateChange: (_cb?: unknown) => ({ data: { subscription: { unsubscribe() {} } } }),
@@ -106,7 +107,7 @@ export async function demoCall<T>(path: string, init: RequestInit = {}): Promise
   if (p === '/gallery/admin/settings' && m === 'GET') return ok({ settings: S.set });
   if (p === '/gallery/admin/settings') {
     if (body.evm_wallet && !/^0x[0-9a-fA-F]{40}$/.test(body.evm_wallet)) fail('The Polygon / ETH / BNB wallet must be 0x + 40 characters.');
-    Object.assign(S.set, body, { royalty_pct: +body.royalty_pct }); return ok({ settings: S.set });
+    Object.assign(S.set, body, body.royalty_pct !== undefined ? { royalty_pct: +body.royalty_pct } : {}); return ok({ settings: S.set });
   }
   return fail('Not found');
 }

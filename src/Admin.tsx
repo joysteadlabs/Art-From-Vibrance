@@ -4,14 +4,15 @@ import { useEffect, useRef, useState } from 'react';
 import { clearRecovery, isRecovery, adminArtworks, adminCreate, adminDelete, adminFulfil, adminMe, adminOrders, adminSaveSettings, adminSettings, adminUpdate, adminUpload, CHAINS, auth, inr, type AdminOrder, type Artwork, type Settings } from './api';
 import { explorer } from './pay';
 
-type Tab = 'home' | 'works' | 'orders' | 'payouts';
+type Tab = 'home' | 'works' | 'orders' | 'payouts' | 'site';
 const ICONS: Record<Tab, string> = {
   home: '<path d="M3 12l9-8 9 8M5 10v10h14V10"/>',
   works: '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/>',
   orders: '<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0"/>',
   payouts: '<rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20M16 15h2"/>',
+  site: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>',
 };
-const LABEL: Record<Tab, string> = { home: 'Home page', works: 'Artworks', orders: 'Orders', payouts: 'Payouts' };
+const LABEL: Record<Tab, string> = { home: 'Home page', works: 'Artworks', orders: 'Orders', payouts: 'Payouts', site: 'About & Contact' };
 
 /** Web-size copy for the site (max 2000 px, JPEG); the untouched file goes to the private originals bucket. */
 async function webCopy(f: File): Promise<Blob> {
@@ -89,6 +90,7 @@ export function Admin({ go }: { go: (h: string) => void }) {
         {tab === 'works' && <WorksTab arts={arts} reload={load} say={say} />}
         {tab === 'orders' && <OrdersTab orders={orders} reload={load} say={say} />}
         {tab === 'payouts' && set && <PayoutsTab s={set} setS={setSet} say={say} />}
+        {tab === 'site' && set && <SiteTab s={set} setS={setSet} say={say} />}
       </main>
     </div>
     {toast && <div className="ad-toast">{toast}</div>}
@@ -223,6 +225,41 @@ function PayoutsTab({ s, setS, say }: { s: Settings; setS: (s: Settings) => void
   </div>;
 }
 
+/* About & Contact (approved mock HrJAPDACizRZAUeRb9dXvA): content for #/about and #/contact. Empty fields are hidden on the site. */
+function SiteTab({ s, setS, say }: { s: Settings; setS: (s: Settings) => void; say: (t: string) => void }) {
+  const [f, setF] = useState({ about_heading: s.about_heading ?? '', about_text: s.about_text ?? '', about_photo: s.about_photo ?? '', city: s.city ?? '',
+    contact_whatsapp: s.contact_whatsapp ?? '', contact_email: s.contact_email ?? '', contact_instagram: s.contact_instagram ?? '', show_commissions: s.show_commissions ?? true });
+  const [busy, setBusy] = useState(false);
+  const missing = s.about_heading === undefined;   // SQL section 8 not run yet
+  const up = (k: keyof typeof f) => (e: { target: { value: string } }) => setF({ ...f, [k]: e.target.value });
+  const photo = async (file?: File) => { if (!file) return; setBusy(true); try { const r = await adminUpload(await webCopy(file), 'web'); setF((x) => ({ ...x, about_photo: r.url || '' })); say('Photo uploaded: press Save to put it on the About page'); } catch (e) { say((e as Error).message); } setBusy(false); };
+  const save = async () => { setBusy(true); try { const n = await adminSaveSettings(f); setS(n); setF((x) => ({ ...x, contact_whatsapp: n.contact_whatsapp ?? x.contact_whatsapp, contact_instagram: n.contact_instagram ?? x.contact_instagram })); say('About & Contact saved'); } catch (e) { say((e as Error).message); } setBusy(false); };
+  return <>
+    {missing && <div className="ad-msg bad">The About &amp; Contact fields are not in the database yet. Run section 8 of <code>worker/gallery.sql</code> in Supabase → SQL Editor, then reload.</div>}
+    <div className="g2">
+      <section className="card neu"><h3>About page<small>#/about</small></h3>
+        <div className="wf">
+          <div className="w2 ad-photo">{f.about_photo ? <img src={f.about_photo} alt="Your photo" /> : <span>Your photo</span>}
+            <label className="btn g">{f.about_photo ? 'Change photo' : 'Upload photo'}<input type="file" accept="image/*" hidden onChange={(e) => photo(e.target.files?.[0])} /></label>
+            {f.about_photo && <button className="lnk" onClick={() => setF({ ...f, about_photo: '' })}>Remove</button>}</div>
+          <label className="w2">Heading<input value={f.about_heading} onChange={up('about_heading')} placeholder="Hello, I'm Nisha." /></label>
+          <label className="w2">Your story (a blank line starts a new paragraph)<textarea rows={9} value={f.about_text} onChange={up('about_text')} placeholder="How you started painting, what you love to paint, the materials you work in…" /></label>
+          <label className="w2">City<input value={f.city} onChange={up('city')} placeholder="Chennai, Tamil Nadu" /></label>
+        </div>
+      </section>
+      <section className="card neu"><h3>Contact page<small>#/contact</small></h3>
+        <div className="wf">
+          <label className="w2">WhatsApp number (with country code)<input inputMode="tel" value={f.contact_whatsapp} onChange={up('contact_whatsapp')} placeholder="+91 98xxx xxxxx" /></label>
+          <label className="w2">Email<input type="email" value={f.contact_email} onChange={up('contact_email')} placeholder="you@example.com" /></label>
+          <label className="w2">Instagram handle<input value={f.contact_instagram} onChange={up('contact_instagram')} placeholder="@yourhandle" /></label>
+          <label className="w2 ad-check"><input type="checkbox" checked={f.show_commissions} onChange={(e) => setF({ ...f, show_commissions: e.target.checked })} />Show the "Commissions" box</label>
+        </div>
+        <p className="mut sm">Empty fields are hidden on the site.</p>
+        <div className="foot"><button className="btn" disabled={busy || missing} onClick={save}>{busy ? 'Saving…' : 'Save'}</button><a className="lnk" href="#/about" target="_blank" rel="noopener">View About</a><a className="lnk" href="#/contact" target="_blank" rel="noopener">View Contact</a></div>
+      </section>
+    </div>
+  </>;
+}
 
 /* Sign in · Create account · Forgot password · Set a new password (after the reset email link). Supabase Auth, Nisha's project. */
 type Mode = 'in' | 'up' | 'forgot' | 'reset';

@@ -8,9 +8,9 @@ a{color:inherit}
 .ng-wrap{max-width:1180px;margin:0 auto;width:100%;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .ng-nav{position:sticky;top:0;z-index:10;background:rgba(250,248,244,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
 .ng-nav .ng-wrap{display:flex;align-items:center;gap:22px;padding-block:16px;flex-wrap:wrap}
-.ng-nav b{font:700 22px var(--serif);margin-right:auto;cursor:pointer}
+.ng-nav .ng-logo{font:700 22px var(--serif);margin-right:auto;cursor:pointer;color:var(--ink);letter-spacing:0;text-transform:none}
 .ng-nav a{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);text-decoration:none;cursor:pointer}
-.ng-nav a.on,.ng-nav a:hover{color:var(--ink)}
+.ng-nav a.on,.ng-nav a:hover{color:var(--ink)}.ng-nav a.on{box-shadow:inset 0 -2px var(--ink);padding-bottom:3px}
 .ng-hero{position:relative;overflow:hidden;background:#1d1a17;color:#fff}
 .ng-hero-bg{position:absolute;inset:-60px;width:calc(100% + 120px);height:calc(100% + 120px);object-fit:cover;filter:blur(38px) brightness(.5) saturate(1.15);pointer-events:none}
 .ng-hero-in{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:48px;align-items:center;min-height:min(78vh,640px);padding-block:40px 72px}
@@ -280,4 +280,43 @@ a{color:inherit}
 .ad-msg{font-size:14px;line-height:1.45;padding:10px 12px;border-radius:10px;align-self:stretch}.ad-msg.ok{background:rgba(46,160,90,.1);color:#1f7a45}.ad-msg.bad{background:rgba(220,60,60,.09);color:#b3261e}
 .ad-gate code{font-size:12px;word-break:break-all}
 .ad-gate .lnk.sm{font-size:13px;padding:0}
-@media (max-width:440px){.ng-nav .ng-wrap{gap:14px;flex-wrap:nowrap}.ng-nav b{font-size:19px;white-space:nowrap}.ng-nav a{letter-spacing:.08em;font-size:11px}.ng-thumbs span{display:none}}
+@media (max-width:440px){.ng-nav .ng-wrap{gap:14px;flex-wrap:nowrap}.ng-nav .ng-logo{font-size:19px;white-space:nowrap}.ng-nav a{letter-spacing:.08em;font-size:11px}.ng-thumbs span{display:none}}
+
+/* Menu pages (Works / About / Contact) */
+.ng-page{padding-block:48px 80px}
+.ng-ph{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:28px}
+.ng-ph .ng-filters{margin:0}
+.ng-page h1{font:700 clamp(34px,4.6vw,56px)/1.05 var(--serif);margin:6px 0;text-wrap:balance}
+.ng-page h2{font:600 clamp(22px,2.4vw,26px)/1.2 var(--serif);margin:10px 0 0}
+.ng-eyebrow{font:600 12px var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}.ng-eyebrow.mut{color:var(--mut)}.ng-eyebrow.gold{color:#f2c879}
+.ng-sub{margin:0;color:var(--mut)}
+.ng-grid4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.ng-price{font-weight:600;font-size:14px;margin-top:2px}
+.ng-two{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:clamp(28px,5vw,72px);align-items:start}
+.ng-side,.ng-col{display:flex;flex-direction:column;gap:16px;min-width:0}
+.ng-portrait{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:4px;box-shadow:0 8px 26px rgba(60,45,25,.10);background:#ece6dc}
+.ng-p1{margin:0;font-size:19px;line-height:1.65;color:#3d3730;max-width:62ch;white-space:pre-line}
+.ng-p2{margin:0;font-size:16px;line-height:1.65;color:var(--mut);max-width:62ch;white-space:pre-line}.ng-p2 b{color:var(--ink);font-weight:600}
+.ng-facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;padding-block:20px;border-block:1px solid var(--line)}
+.ng-facts div{display:flex;flex-direction:column;gap:2px;min-width:0}.ng-facts b{font:600 clamp(20px,2.2vw,28px)/1.2 var(--serif);overflow-wrap:anywhere}.ng-facts span{color:var(--mut);font-size:14px}
+.ng-btns{display:flex;gap:12px;flex-wrap:wrap}
+.ng-btn{border:0;background:var(--ink);color:var(--bg);font-weight:600;padding:14px 24px;border-radius:999px;cursor:pointer;font-size:15px;min-height:48px}
+.ng-btn2{border:1.5px solid var(--ink);background:none;color:var(--ink);font-weight:500;padding:13px 22px;border-radius:999px;cursor:pointer;font-size:15px;min-height:48px}
+.ng-cpic{width:100%;height:clamp(180px,24vw,280px);object-fit:cover;border-radius:10px;box-shadow:0 8px 26px rgba(60,45,25,.10)}
+.ng-cc{display:flex;gap:18px;align-items:center;padding:20px 22px;background:#fff;border:1px solid var(--line);border-radius:14px;text-decoration:none;color:var(--ink);transition:border-color .2s,transform .2s}
+.ng-cc:hover{border-color:var(--ink);transform:translateY(-1px)}
+.ng-cc i{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex:none}
+.ng-cc i.g{background:#e8f6ee;color:#1f7a45}.ng-cc i.b{background:#eef2fb;color:#2f5bb7}.ng-cc i.p{background:#fbeef4;color:#b2306b}
+.ng-cc span{display:flex;flex-direction:column;flex:1;min-width:0}.ng-cc b{font-size:17px}.ng-cc small{color:var(--mut);font-size:15px;overflow-wrap:anywhere}
+.ng-cc em{font-style:normal;font-weight:600;font-size:14px;white-space:nowrap}
+.ng-comm{display:flex;flex-direction:column;gap:10px;padding:24px;border-radius:14px;background:var(--ink);color:var(--bg);margin-top:6px}
+.ng-comm b{font:600 clamp(22px,2.2vw,26px)/1.2 var(--serif)}.ng-comm p{margin:0;color:rgba(250,248,244,.8);font-size:15px;line-height:1.6}
+.ng-comm a{align-self:flex-start;background:var(--bg);color:var(--ink);text-decoration:none;font-weight:600;padding:12px 22px;border-radius:999px;margin-top:4px}
+.ng-foot a{color:inherit}
+@media (max-width:900px){.ng-grid4{grid-template-columns:repeat(2,minmax(0,1fr))}.ng-two{grid-template-columns:minmax(0,1fr)}.ng-portrait{max-height:60vh}}
+@media (max-width:440px){.ng-cc{padding:16px;gap:12px}.ng-cc em{display:none}.ng-facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.ad-photo{display:flex;align-items:center;gap:14px;flex-wrap:wrap}.ad-photo img,.ad-photo>span{width:96px;height:120px;border-radius:8px;object-fit:cover;background:rgba(127,140,170,.12);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--mut)}
+.ad-photo label.btn{cursor:pointer}
+.ad .ad-check{flex-direction:row!important;align-items:center;gap:10px}.ad .ad-check input{width:18px;height:18px}
+.ad textarea{font:inherit;resize:vertical}
+.ad .wf .ad-photo{grid-column:1/-1}
