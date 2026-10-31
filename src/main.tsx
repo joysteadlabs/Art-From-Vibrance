@@ -17,7 +17,7 @@ function App() {
   useEffect(() => { if (!r.startsWith('/admin')) listArtworks().then(setData, (e) => setErr(e.message)); }, [r]);
   const go = (h: string) => { if (h.includes('#about')) { location.hash = '#/'; setTimeout(() => document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' }), 50); return; } location.hash = h; };
 
-  const demo = DEMO && <div className="ng-demo">Demo · sample artworks · payments are simulated · {r.startsWith('/admin') ? <a href="#/">Open the gallery</a> : <a href="#/admin">Open the admin</a>}</div>;
+  const demo = DEMO && <div className="ng-demo">Preview · sample paintings · nothing is saved yet (connect the database in config.js) · {r.startsWith('/admin') ? <a href="#/">Open the gallery</a> : <a href="#/admin">Open the admin</a>}</div>;
   if (r.startsWith('/admin')) return <>{demo}<Admin go={go} /></>;
   const slug = /^\/art\/([^/?]+)/.exec(r)?.[1];
   const art = slug && data ? data.artworks.find((a) => a.slug === slug) : null;
@@ -28,7 +28,7 @@ function App() {
       : r.startsWith('/wall') ? <WallPage arts={data.artworks} go={go} />
       : slug ? (art ? <ArtPage a={art} pay={data.pay} go={go} /> : <div className="ng-wrap ng-empty">This artwork is not here any more. <a href="#/">See all works</a></div>)
       : <Home arts={data.artworks} go={go} />}
-    <footer className="ng-foot"><div className="ng-wrap">Nisha Gallery · Chennai · Pay by UPI, card or netbanking (Razorpay), or with Polygon, Ethereum, BNB, Bitcoin or Solana · <a href="#/admin">Admin</a></div></footer>
+    <footer className="ng-foot"><div className="ng-wrap">Art From Vibrance · Chennai · Pay by UPI, card or netbanking (Razorpay), or with Polygon, Ethereum, BNB, Bitcoin or Solana · <a href="#/admin">Admin</a></div></footer>
   </div>;
 }
 createRoot(document.getElementById('root')!).render(<StrictMode><App /></StrictMode>);

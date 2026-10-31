@@ -1,4 +1,4 @@
-/* Payment helpers: Razorpay Checkout (same flow as medicalandroid.com) and crypto wallets.
+/* Payment helpers: Razorpay Checkout and crypto wallets.
    Crypto goes straight from the buyer's wallet to the gallery's wallet; the Worker checks it on-chain. */
 import qrcode from 'qrcode-generator';
 import type { Chain, Order } from './api';
@@ -21,7 +21,7 @@ export async function payRazorpay(o: Order, buyer: { name: string; email: string
   await loadRazorpay();
   return new Promise((ok, bad) => {
     const rz = new window.Razorpay({
-      key: o.key_id, order_id: o.rzp_order_id, amount: o.amount_paise, currency: 'INR', name: 'Nisha Gallery',
+      key: o.key_id, order_id: o.rzp_order_id, amount: o.amount_paise, currency: 'INR', name: 'Art From Vibrance',
       description: `${o.title} · ${o.edition === 'nft' ? 'NFT copy' : 'Normal copy'}`, prefill: { name: buyer.name, email: buyer.email, contact: buyer.phone },
       theme: { color: '#141210' }, handler: (r: Record<string, string>) => ok(r), modal: { ondismiss: () => bad(new Error('Payment window closed.')) },
     });
@@ -57,7 +57,7 @@ export async function payEvm(o: Order): Promise<string> {
 }
 /** Link / QR text a phone wallet understands. */
 export function payUri(o: Order): string {
-  const label = encodeURIComponent('Nisha Gallery');
+  const label = encodeURIComponent('Art From Vibrance');
   if (o.chain === 'btc') return `bitcoin:${o.pay_to}?amount=${o.amount}&label=${label}`;
   if (o.chain === 'sol') return `solana:${o.pay_to}?amount=${o.amount}&reference=${o.reference}&label=${label}&message=${encodeURIComponent(o.title)}`;
   return `ethereum:${o.pay_to}@${EVM_CHAINS[o.chain!].id}?value=${toUnits(o.amount!, o.chain!).toString()}`;   // EIP-681

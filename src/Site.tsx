@@ -4,7 +4,7 @@ import { WallCard } from './Wall';
 import { evmAccount, explorer, hasEvmWallet, payEvm, payRazorpay, payUri, qrSvg } from './pay';
 
 export function Nav({ go }: { go: (h: string) => void }) {
-  return <nav className="ng-nav"><div className="ng-wrap"><b onClick={() => go('#/')}>Nisha Gallery</b><a className="on" onClick={() => go('#/')}>Works</a><a onClick={() => go('#/#about')}>About</a><a href="mailto:hello@nishagallery.com">Contact</a></div></nav>;
+  return <nav className="ng-nav"><div className="ng-wrap"><b onClick={() => go('#/')}>Art From Vibrance</b><a className="on" onClick={() => go('#/')}>Works</a><a onClick={() => go('#/#about')}>About</a><a href="mailto:hello@nishagallery.com">Contact</a></div></nav>;
 }
 
 export function Home({ arts, go }: { arts: Artwork[]; go: (h: string) => void }) {
@@ -143,7 +143,7 @@ function Checkout({ a, edition, pay, close }: { a: Artwork; edition: 'copy' | 'n
         {err && <p className="ng-err">{err}</p>}
         <div className="ng-tot"><span>Total</span><span>{inr(amount)}</span></div>
         <button className="ng-pay" disabled={step === 'paying' || !methods.length} onClick={start}>{step === 'paying' ? 'Starting…' : crypto ? `Continue with ${CHAINS[m as Chain].coin}` : 'Pay ' + inr(amount)}</button>
-        <p className="ng-fine">{crypto ? `You will see the exact ${CHAINS[m as Chain].coin} amount at today's rate. It goes straight to the gallery's wallet.` : 'Paid to Nisha Gallery through Razorpay.'}</p>
+        <p className="ng-fine">{crypto ? `You will see the exact ${CHAINS[m as Chain].coin} amount at today's rate. It goes straight to the gallery's wallet.` : 'Paid to Art From Vibrance through Razorpay.'}</p>
       </>}
     </div>
   </div>;

@@ -1,0 +1,22 @@
+# Art From Vibrance gallery server: Nisha's OWN Cloudflare account (nothing shared with MedDroid).
+# Deploy: Cloudflare → Workers & Pages → Create → Import a repository → joysteadlabs/Art-From-Vibrance,
+# root directory "worker". Every push to main then redeploys it.
+name = "art-from-vibrance"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+
+[vars]
+# Public settings (not secrets). Keep them HERE: a git deploy replaces dashboard text variables with this list.
+ALLOWED_ORIGINS = "https://joysteadlabs.github.io,http://localhost:5173"
+GALLERY_SITE = "https://joysteadlabs.github.io/Art-From-Vibrance"
+# Google accounts allowed into #/admin (comma-separated).
+GALLERY_ADMINS = "dr.sanjayanbu@gmail.com"
+# Nisha's Supabase project URL (public). Fill in: https://<project>.supabase.co
+GALLERY_SUPABASE_URL = ""
+
+# SECRETS: add in Cloudflare → this Worker → Settings → Variables and Secrets (type Secret). Never in git or chat.
+#   GALLERY_SUPABASE_SERVICE_KEY      Supabase → Project Settings → API keys → service_role / secret key
+#   GALLERY_RAZORPAY_KEY_ID           Nisha's Razorpay (card / UPI). Without these, the site offers crypto only.
+#   GALLERY_RAZORPAY_KEY_SECRET
+#   GALLERY_RAZORPAY_WEBHOOK_SECRET   Razorpay webhook URL: https://art-from-vibrance.<account>.workers.dev/gallery/razorpay-webhook
+#   RESEND_API_KEY (optional)         email to the admin on each sale

@@ -1,6 +1,9 @@
-/* Demo build (VITE_DEMO=1): the whole gallery runs in the browser with sample artworks and simulated payments,
-   so the founder can try it before Supabase / wallets are set up. Never used by the real site build. */
-export const DEMO = import.meta.env.VITE_DEMO === '1';
+/* Preview mode: the whole gallery runs in the browser with sample artworks and simulated payments.
+   On when built with VITE_DEMO=1, or while config.js (window.GALLERY_CONFIG) is not filled in yet. Nothing is saved. */
+type Cfg = { api?: string; supabaseUrl?: string; supabaseKey?: string };
+export const CFG: Cfg = (globalThis as { GALLERY_CONFIG?: Cfg }).GALLERY_CONFIG || {};
+export const CONNECTED = !!(CFG.supabaseUrl && CFG.supabaseKey);   // the payments Worker (CFG.api) is optional
+export const DEMO = import.meta.env.VITE_DEMO === '1' || !CONNECTED;
 
 const PAL = [['#d9643a', '#f2c14e', '#2b3a55'], ['#1d3557', '#457b9d', '#f1faee'], ['#3a2e39', '#c7a27c', '#e8d5b7'], ['#264653', '#2a9d8f', '#e9c46a'], ['#6d2e46', '#d5b9b2', '#a26769'], ['#0b3954', '#bfd7ea', '#ff6663']];
 function art(i: number) {
@@ -36,6 +39,7 @@ export const demoAuth = {
   getSession: async () => ({ data: { session: { access_token: 'demo', user: { email: 'nisha@nishagallery.com' } } } }),
   onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }),
   signInWithOAuth: async () => ({}),
+  signInWithOtp: async () => ({ error: null }),
   signOut: async () => { location.hash = '#/'; },
 };
 
