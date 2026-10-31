@@ -87,6 +87,12 @@ LIVE on https://sanjaydoc.github.io/nisha-gallery/
   not deployed yet) and marks the order "NFT minted" with the tx. Next step: deploy the contract and automate minting.
 - Razorpay restricts crypto/NFT-related payments: Nisha should tell Razorpay she sells art prints and check before taking NFT payments through it.
 
+## Home carousel (founder-approved mock https://claude.ai/artifact/HrJAPDACizRZAUeRb9dXvA, built 2026-10-31)
+- `Home` in src/Site.tsx: whole painting in a white frame (object-fit contain, never cropped) over a blurred copy of it; text left
+  (Now showing · n / N, title, artist · medium, "View · from ₹", "See it on your wall" → #/wall, prev/next arrows), dots, and an
+  "In the carousel" thumbnail row. Auto-advances every 5 s; any manual pick stops it. Phone: painting on top, text below.
+  Slides = artworks with on_home (admin Home page tab). Tests: scratchpad afvw/hero.mjs 23/23 (desktop + 390px, aspect kept).
+
 ## Live status (2026-10-31)
 - **WORKING (founder confirmed 2026-10-31):** Nisha signs in (email + password), uploads save to her Supabase and stay after refresh.
   Fix chain that got there: config.js filled (URL had '/rest/v1/' → stripped), setup SQL section 6 run, password set via SQL

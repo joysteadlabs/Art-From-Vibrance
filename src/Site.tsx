@@ -11,16 +11,38 @@ export function Home({ arts, go }: { arts: Artwork[]; go: (h: string) => void })
   const home = arts.filter((a) => a.on_home);
   const [i, setI] = useState(0);
   const [f, setF] = useState<'all' | 'nft' | 'new'>('all');
-  useEffect(() => { if (home.length < 2) return; const t = setInterval(() => setI((x) => (x + 1) % home.length), 6000); return () => clearInterval(t); }, [home.length]);
-  const h = home[i % Math.max(1, home.length)];
+  const [auto, setAuto] = useState(true);   // a manual pick stops the auto-advance (approved mock HrJAPDACizRZAUeRb9dXvA)
+  useEffect(() => { if (home.length < 2 || !auto) return; const t = setInterval(() => setI((x) => (x + 1) % home.length), 5000); return () => clearInterval(t); }, [home.length, auto]);
+  const n = Math.max(1, home.length);
+  const pick = (k: number) => { setAuto(false); setI(((k % n) + n) % n); };
+  const h = home[i % n];
+  const from = (a: Artwork) => inr(Math.min(a.copy_price || a.nft_price, a.nft_price || a.copy_price));
   const recent = new Set([...arts].sort((a, b) => b.created_at.localeCompare(a.created_at)).slice(0, 3).map((a) => a.id));
   const list = arts.filter((a) => f === 'all' || (f === 'nft' && a.nft_status !== 'sold') || (f === 'new' && recent.has(a.id)));
   return <>
-    {h ? <section className="ng-hero" style={{ backgroundImage: `url("${h.image_url}")` }}>
-      <div className="ng-cap ng-wrap"><span className="ng-kick">Now showing</span><h1>{h.title}</h1><p>{h.artist}{h.medium ? ` · ${h.medium}` : ''}</p>
-        <button className="ng-cta" onClick={() => go(`#/art/${h.slug}`)}>View · from {inr(Math.min(h.copy_price || h.nft_price, h.nft_price || h.copy_price))}</button></div>
-      {home.length > 1 && <div className="ng-dots">{home.map((x, k) => <button key={x.id} aria-label={`Slide ${k + 1}`} className={k === i % home.length ? 'on' : ''} onClick={() => setI(k)} />)}</div>}
-    </section> : <section className="ng-wrap ng-intro"><h1>Original works, in <em>two editions</em></h1></section>}
+    {h ? <>
+      <section className="ng-hero" aria-label="Paintings carousel">
+        <img className="ng-hero-bg" src={h.image_url} alt="" aria-hidden="true" />
+        <div className="ng-wrap ng-hero-in">
+          <div className="ng-hero-art"><div className="ng-frame"><img src={h.image_url} alt={`${h.title}, painting by ${h.artist || 'the artist'}`} /></div></div>
+          <div className="ng-cap">
+            <span className="ng-kick">Now showing{home.length > 1 ? ` · ${(i % n) + 1} / ${home.length}` : ''}</span>
+            <h1>{h.title}</h1>
+            <p>{h.artist}{h.medium ? ` · ${h.medium}` : ''}</p>
+            <div className="ng-hero-btns">
+              <button className="ng-cta" onClick={() => go(`#/art/${h.slug}`)}>View · from {from(h)}</button>
+              <button className="ng-cta2" onClick={() => go('#/wall')}>See it on your wall</button>
+            </div>
+            {home.length > 1 && <div className="ng-arrows">
+              <button aria-label="Previous painting" onClick={() => pick(i - 1)}><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg></button>
+              <button aria-label="Next painting" onClick={() => pick(i + 1)}><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg></button>
+            </div>}
+          </div>
+        </div>
+        {home.length > 1 && <div className="ng-dots">{home.map((x, k) => <button key={x.id} aria-label={`Show ${x.title}`} className={k === i % n ? 'on' : ''} onClick={() => pick(k)} />)}</div>}
+      </section>
+      {home.length > 1 && <div className="ng-wrap ng-thumbs"><span>In the carousel</span>{home.map((x, k) => <button key={x.id} aria-label={`Show ${x.title}`} className={k === i % n ? 'on' : ''} onClick={() => pick(k)}><img src={x.image_url} alt="" /></button>)}</div>}
+    </> : <section className="ng-wrap ng-intro"><h1>Original works, in <em>two editions</em></h1></section>}
     <div className="ng-wrap">
       <div className="ng-lead" id="about"><h2>Every work, two ways to own it</h2><p>A <b>normal copy</b>: an archival print, signed, delivered to your door. Or the <b>NFT copy</b>: one of one, owned on-chain, with the full-resolution original file. Pay by UPI or card, or with crypto.</p></div>
       <WallCard arts={arts} go={go} />
