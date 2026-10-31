@@ -23,7 +23,8 @@ async function webCopy(f: File): Promise<Blob> {
 }
 
 export function Admin({ go }: { go: (h: string) => void }) {
-  const [state, setState] = useState<'loading' | 'out' | 'denied' | 'in'>('loading');
+  const [state, setState] = useState<'loading' | 'out' | 'denied' | 'error' | 'in'>('loading');
+  const [err, setErr] = useState('');
   const [email, setEmail] = useState('');
   const [tab, setTab] = useState<Tab>('home');
   const [arts, setArts] = useState<Artwork[]>([]);
@@ -31,14 +32,24 @@ export function Admin({ go }: { go: (h: string) => void }) {
   const [set, setSet] = useState<Settings | null>(null);
   const [toast, setToast] = useState('');
   const say = (t: string) => { setToast(t); setTimeout(() => setToast(''), 2800); };
-  const load = async () => { const [a, o, s] = await Promise.all([adminArtworks(), adminOrders(), adminSettings()]); setArts(a); setOrders(o); setSet(s); };
+  // Each part loads on its own: one failing part shows its real error instead of locking the admin out.
+  const load = async () => {
+    const [a, o, s] = await Promise.allSettled([adminArtworks(), adminOrders(), adminSettings()]);
+    if (a.status === 'fulfilled') setArts(a.value); if (o.status === 'fulfilled') setOrders(o.value); if (s.status === 'fulfilled') setSet(s.value);
+    setErr([a, o, s].filter((r): r is PromiseRejectedResult => r.status === 'rejected').map((r) => (r.reason as Error)?.message || String(r.reason)).join(' · '));
+  };
 
   useEffect(() => {
     const check = async () => {
       const s = (await auth.getSession()).data.session;
       if (!s) { setState('out'); return; }
       setEmail(s.user.email || '');
-      try { await adminMe(); setState('in'); await load(); } catch { setState('denied'); }
+      try { await adminMe(); } catch (e) {
+        const m = (e as Error).message || '';
+        if (m === 'Not a gallery admin') setState('denied'); else { setErr(m); setState('error'); }
+        return;
+      }
+      setState('in'); await load();
     };
     check();
     const { data } = auth.onAuthStateChange((e) => { if (e === 'SIGNED_IN' || e === 'SIGNED_OUT' || e === 'USER_UPDATED') setTimeout(check, 0); });
@@ -49,6 +60,9 @@ export function Admin({ go }: { go: (h: string) => void }) {
   if (state !== 'in' || isRecovery()) return <div className="ad"><div className="ad-gate neu">
     <h1>Gallery <span>admin</span></h1>
     {isRecovery() && state !== 'loading' ? <AuthForms /> : state === 'loading' ? <p>Checking your sign-in…</p>
+      : state === 'error' ? <><p>Signed in as <b>{email}</b>, but the gallery database answered with an error:</p><p className="ad-msg bad">{err}</p>
+        <p className="mut sm">Usually the setup SQL (worker/gallery.sql) has not been run in Supabase yet. Run it, then reload this page.</p>
+        <button className="btn g" onClick={() => auth.signOut()}>Sign out</button></>
       : state === 'denied' ? <><p>You are signed in as <b>{email}</b>, but this email is not on the gallery admin list yet, so it cannot upload artworks.</p>
         <p className="mut sm">Add it in Supabase → SQL Editor: <code>insert into gallery_admins (email) values ('{email}');</code> then reload this page.</p>
         <button className="btn g" onClick={() => auth.signOut()}>Sign out</button></>
@@ -64,6 +78,7 @@ export function Admin({ go }: { go: (h: string) => void }) {
     <div className="ad-app">
       <nav className="rail">{(Object.keys(LABEL) as Tab[]).map((t) => <button key={t} className={`rb${tab === t ? ' on' : ''}`} onClick={() => setTab(t)}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: ICONS[t] }} />{LABEL[t]}{t === 'orders' && todo > 0 && <em>{todo}</em>}</button>)}</nav>
       <main className="ad-main">
+        {err && <div className="ad-msg bad">Some gallery data could not load: {err}</div>}
         <div className="tiles">
           <div className="tile neu"><div className="v">{home.length}</div><div className="l">On the home page</div></div>
           <div className="tile neu"><div className="v">{arts.filter((a) => a.published).length}</div><div className="l">Artworks listed</div></div>

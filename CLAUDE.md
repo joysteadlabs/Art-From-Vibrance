@@ -53,7 +53,7 @@ Never point this site at MedDroid's Worker, Supabase, keys or accounts, and neve
    wrangler.toml, secret GALLERY_SUPABASE_SERVICE_KEY; then `api` in config.js; Razorpay 3 secrets + webhook `<worker>/gallery/razorpay-webhook`.
 
 ## Tests (scratchpad `afvw/`, 2026-10-31): tsc strict + noUnused clean, ESLint (ts + react-hooks) clean; worker 48/48 (`test.mjs`); browser e2e 23/23 (`e2e.mjs`: direct Supabase uploads to both buckets,
-artworks survive a page refresh, payments through the real worker code with fake Razorpay/chains); `nw.mjs` 5/5 (no Worker: browse + admin; password sign-in, wrong password message); `auth.mjs` 16/16 (sign up incl. short/mismatch/duplicate,
+artworks survive a page refresh, payments through the real worker code with fake Razorpay/chains); `nw.mjs` 5/5 (no Worker: browse + admin; password sign-in, wrong password message); `auth.mjs` 18/18 (one failing data part keeps the dashboard open + shows the real error; missing setup SQL shows the DB error; sign up incl. short/mismatch/duplicate,
 unconfirmed, wrong password, admin in + survives refresh, non-admin message, forgot → reset link → new password, confirm link, phone);
 SQL policies on real Postgres 16 (admin writes, stranger blocked incl. storage, anon sees only the views, original_path hidden, re-run safe).
 
