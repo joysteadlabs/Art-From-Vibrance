@@ -46,17 +46,18 @@ export function Admin({ go }: { go: (h: string) => void }) {
   }, []);
   const back = location.origin + location.pathname + '#/admin';
   const signIn = () => auth.signInWithOAuth({ provider: 'google', options: { redirectTo: back } });
-  const [mail, setMail] = useState(''); const [sent, setSent] = useState('');
-  // Email link: works with Supabase's built-in email, no Google setup needed.
-  const mailLink = async () => { if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail)) { setSent('Enter your email.'); return; }
-    const { error } = await auth.signInWithOtp({ email: mail.trim(), options: { emailRedirectTo: back, shouldCreateUser: true } });
-    setSent(error ? error.message : `Sign-in link sent to ${mail.trim()}. Open it on this device.`); };
+  const [mail, setMail] = useState(''); const [pw, setPw] = useState(''); const [sent, setSent] = useState('');
+  // Email + password (Supabase Auth; the admin user is added in Supabase → Authentication → Users).
+  const pwIn = async (e: { preventDefault(): void }) => { e.preventDefault(); setSent('');
+    if (!mail.trim() || !pw) { setSent('Enter your email and password.'); return; }
+    const { error } = await auth.signInWithPassword({ email: mail.trim(), password: pw });
+    if (error) setSent(error.message === 'Invalid login credentials' ? 'Wrong email or password.' : error.message); };
 
   if (state !== 'in') return <div className="ad"><div className="ad-gate neu">
     <h1>Gallery <span>admin</span></h1>
     {state === 'loading' ? <p>Checking your sign-in…</p> : state === 'denied' ? <><p>{email} is not a gallery admin. Only the admin can upload artworks.</p><button className="btn g" onClick={() => auth.signOut()}>Sign out</button></> : <><p>Sign in with the gallery admin Google account to upload artworks and see orders.</p><button className="btn" onClick={signIn}>Sign in with Google</button>
-      <p className="mut sm">or get a sign-in link by email</p>
-      <div className="ad-mail"><input type="email" placeholder="you@example.com" value={mail} onChange={(e) => setMail(e.target.value)} /><button className="btn g" onClick={mailLink}>Email me a link</button></div>
+      <p className="mut sm">or sign in with email</p>
+      <form className="ad-mail" onSubmit={pwIn}><input type="email" autoComplete="username" placeholder="Email" value={mail} onChange={(e) => setMail(e.target.value)} /><input type="password" autoComplete="current-password" placeholder="Password" value={pw} onChange={(e) => setPw(e.target.value)} /><button className="btn" type="submit">Sign in</button></form>
       {sent && <p className="mut sm">{sent}</p>}</>}
     <button className="lnk" onClick={() => go('#/')}>← Back to the gallery</button>
   </div></div>;

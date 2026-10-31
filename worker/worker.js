@@ -44,7 +44,6 @@ const GAL_CHAINS = {
   btc: { kind: 'btc', coin: 'BTC', cg: 'bitcoin', dp: 8, name: 'Bitcoin' },
   sol: { kind: 'sol', coin: 'SOL', cg: 'solana', dp: 6, rpc: (env) => env.SOL_RPC || 'https://api.mainnet-beta.solana.com', name: 'Solana' },
 };
-const GAL_DEC = { evm: 18, btc: 8, sol: 9 };
 // Nisha's own Supabase project only: GALLERY_SUPABASE_URL ([vars]) + GALLERY_SUPABASE_SERVICE_KEY (secret).
 const galDb = (env) => ({ url: env.GALLERY_SUPABASE_URL || '', key: env.GALLERY_SUPABASE_SERVICE_KEY || '' });
 const GAL_SVC = (env) => { const d = galDb(env); return { apikey: d.key, Authorization: `Bearer ${d.key}` }; };

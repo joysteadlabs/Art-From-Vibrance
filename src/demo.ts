@@ -1,7 +1,9 @@
 /* Preview mode: the whole gallery runs in the browser with sample artworks and simulated payments.
    On when built with VITE_DEMO=1, or while config.js (window.GALLERY_CONFIG) is not filled in yet. Nothing is saved. */
 type Cfg = { api?: string; supabaseUrl?: string; supabaseKey?: string };
-export const CFG: Cfg = (globalThis as { GALLERY_CONFIG?: Cfg }).GALLERY_CONFIG || {};
+const RAW: Cfg = (globalThis as { GALLERY_CONFIG?: Cfg }).GALLERY_CONFIG || {};
+// Tolerate a pasted '/rest/v1/' or trailing slash on the Supabase URL.
+export const CFG: Cfg = { ...RAW, supabaseUrl: (RAW.supabaseUrl || '').trim().replace(/\/(rest|auth|storage)\/v1\/?.*$/, '').replace(/\/+$/, ''), supabaseKey: (RAW.supabaseKey || '').trim(), api: (RAW.api || '').trim() };
 export const CONNECTED = !!(CFG.supabaseUrl && CFG.supabaseKey);   // the payments Worker (CFG.api) is optional
 export const DEMO = import.meta.env.VITE_DEMO === '1' || !CONNECTED;
 
@@ -39,7 +41,7 @@ export const demoAuth = {
   getSession: async () => ({ data: { session: { access_token: 'demo', user: { email: 'nisha@nishagallery.com' } } } }),
   onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }),
   signInWithOAuth: async () => ({}),
-  signInWithOtp: async () => ({ error: null }),
+  signInWithPassword: async () => ({ error: null }),
   signOut: async () => { location.hash = '#/'; },
 };
 

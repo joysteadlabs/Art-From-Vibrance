@@ -29,7 +29,8 @@ Never point this site at MedDroid's Worker, Supabase, keys or accounts, and neve
   `gallery-originals`), adminCreate/Update/Delete/Orders/Fulfil/Settings via PostgREST; public list via views `gallery_artworks_public`
   (no original_path) + `gallery_pay_public`. Security = `worker/gallery.sql` section 6: table `gallery_admins(email)`, function
   `gallery_is_admin()` (JWT email), RLS policies for admins, storage.objects insert/update/delete/read-originals for admins only.
-  Admin sign-in: Google OR "Email me a link" (Supabase built-in email, no Google setup needed).
+  Admin sign-in: Google OR email + password (founder 2026-10-31 removed the email-link button). Password user = Supabase →
+  Authentication → Users → Add user (Auto Confirm); its email must be in gallery_admins. CFG strips a pasted '/rest/v1/' from the URL.
 - `worker/worker.js` + `worker/wrangler.toml`: the gallery's own Cloudflare Worker for PAYMENTS (`/gallery/order`, `/gallery/verify`,
   `/gallery/razorpay-webhook`, `/gallery/nft/<n>.json`, `/health`; old admin routes kept). [vars]: ALLOWED_ORIGINS, GALLERY_SITE,
   GALLERY_ADMINS, GALLERY_SUPABASE_URL. Secrets (dashboard only): GALLERY_SUPABASE_SERVICE_KEY, GALLERY_RAZORPAY_KEY_ID / _KEY_SECRET /
@@ -42,13 +43,13 @@ Never point this site at MedDroid's Worker, Supabase, keys or accounts, and neve
 1. Supabase SQL editor: run `worker/gallery.sql` (again if run before — it is re-run safe; section 6 is new). Add her admin email:
    `insert into gallery_admins (email) values ('her@email') on conflict do nothing;`
 2. Supabase → Authentication → URL Configuration: Site URL + redirect `https://joysteadlabs.github.io/Art-From-Vibrance/`.
-   (Google provider optional; the email link works without it.)
+   (Google provider optional; email + password works without it.)
 3. `docs/config.js` on GitHub: supabaseUrl + supabaseKey (publishable). Commit → uploads save. (Uploads need nothing else.)
 4. Payments later: Cloudflare (Nisha's, free) → Import repository joysteadlabs/Art-From-Vibrance, root `worker`; GALLERY_SUPABASE_URL in
    wrangler.toml, secret GALLERY_SUPABASE_SERVICE_KEY; then `api` in config.js; Razorpay 3 secrets + webhook `<worker>/gallery/razorpay-webhook`.
 
-## Tests (scratchpad `afvw/`): worker 48/48 (`test.mjs`); browser e2e 23/23 (`e2e.mjs`: direct Supabase uploads to both buckets,
-artworks survive a page refresh, payments through the real worker code with fake Razorpay/chains); `nw.mjs` 2/2 (no Worker: browse + admin);
+## Tests (scratchpad `afvw/`, 2026-10-31): tsc strict + noUnused clean, ESLint (ts + react-hooks) clean; worker 48/48 (`test.mjs`); browser e2e 23/23 (`e2e.mjs`: direct Supabase uploads to both buckets,
+artworks survive a page refresh, payments through the real worker code with fake Razorpay/chains); `nw.mjs` 5/5 (no Worker: browse + admin; password sign-in, wrong password message);
 SQL policies on real Postgres 16 (admin writes, stranger blocked incl. storage, anon sees only the views, original_path hidden, re-run safe).
 
 ## See it on your wall (founder-approved mock https://claude.ai/artifact/HUo2YJDoXAj5ZbS2FT6DmJ, built 2026-10-31)
@@ -80,3 +81,7 @@ LIVE on https://sanjaydoc.github.io/nisha-gallery/
 - **On-chain minting is manual:** after an NFT sale the admin mints token #N to the buyer's wallet (needs an ERC-721 contract on Polygon,
   not deployed yet) and marks the order "NFT minted" with the tx. Next step: deploy the contract and automate minting.
 - Razorpay restricts crypto/NFT-related payments: Nisha should tell Razorpay she sells art prints and check before taking NFT payments through it.
+
+## Live status (2026-10-31)
+- Nisha's Supabase project `rzgizjhuzpbngnbhunhu` connected via docs/config.js (publishable key, public). Admin email: joysteadlabs@gmail.com
+  (+ dr.sanjayanbu@gmail.com) in gallery_admins. Payments Worker not set up yet (api empty).
