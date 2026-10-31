@@ -130,3 +130,14 @@ create policy gallery_admin_remove on storage.objects for delete to authenticate
 drop policy if exists gallery_admin_read_originals on storage.objects;
 create policy gallery_admin_read_originals on storage.objects for select to authenticated
   using (bucket_id in ('gallery', 'gallery-originals') and public.gallery_is_admin());
+
+-- 7) Table privileges (re-run safe). Newer Supabase projects do not auto-grant new tables to the API roles, which
+--    showed up as "permission denied for table gallery_artworks". RLS (section 6) still decides who can do what.
+grant usage on schema public to anon, authenticated, service_role;
+grant select, insert, update, delete on gallery_artworks, gallery_settings to authenticated;
+grant select, update on gallery_orders to authenticated;
+grant usage, select on sequence gallery_nft_token_seq to authenticated;
+grant select on gallery_artworks_public, gallery_pay_public to anon, authenticated;
+grant all on gallery_artworks, gallery_orders, gallery_settings, gallery_admins to service_role;
+grant usage, select on sequence gallery_nft_token_seq to service_role;
+grant execute on function public.gallery_is_admin() to anon, authenticated, service_role;
