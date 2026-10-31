@@ -29,8 +29,12 @@ Never point this site at MedDroid's Worker, Supabase, keys or accounts, and neve
   `gallery-originals`), adminCreate/Update/Delete/Orders/Fulfil/Settings via PostgREST; public list via views `gallery_artworks_public`
   (no original_path) + `gallery_pay_public`. Security = `worker/gallery.sql` section 6: table `gallery_admins(email)`, function
   `gallery_is_admin()` (JWT email), RLS policies for admins, storage.objects insert/update/delete/read-originals for admins only.
-  Admin sign-in: Google OR email + password (founder 2026-10-31 removed the email-link button). Password user = Supabase →
-  Authentication → Users → Add user (Auto Confirm); its email must be in gallery_admins. CFG strips a pasted '/rest/v1/' from the URL.
+  Admin auth (founder 2026-10-31: "create a signup form, login form ... admin login form"): `AuthForms` in src/Admin.tsx — tabs
+  **Sign in / Create account**, **Forgot password?** → reset email → link lands on the site root → main.tsx (`authReturn`) opens #/admin →
+  "Choose a new password" (PASSWORD_RECOVERY / `isRecovery()`); confirm-email links also land on #/admin. Google button removed (Google is
+  not set up in her Supabase). Anyone can create an account, but ONLY emails in `gallery_admins` get the dashboard; others see
+  "not on the gallery admin list" + the SQL to add them. Supabase must allow email sign-ups (Authentication → Sign In / Providers → Email).
+  CFG strips a pasted '/rest/v1/' from the URL.
 - `worker/worker.js` + `worker/wrangler.toml`: the gallery's own Cloudflare Worker for PAYMENTS (`/gallery/order`, `/gallery/verify`,
   `/gallery/razorpay-webhook`, `/gallery/nft/<n>.json`, `/health`; old admin routes kept). [vars]: ALLOWED_ORIGINS, GALLERY_SITE,
   GALLERY_ADMINS, GALLERY_SUPABASE_URL. Secrets (dashboard only): GALLERY_SUPABASE_SERVICE_KEY, GALLERY_RAZORPAY_KEY_ID / _KEY_SECRET /
@@ -49,7 +53,8 @@ Never point this site at MedDroid's Worker, Supabase, keys or accounts, and neve
    wrangler.toml, secret GALLERY_SUPABASE_SERVICE_KEY; then `api` in config.js; Razorpay 3 secrets + webhook `<worker>/gallery/razorpay-webhook`.
 
 ## Tests (scratchpad `afvw/`, 2026-10-31): tsc strict + noUnused clean, ESLint (ts + react-hooks) clean; worker 48/48 (`test.mjs`); browser e2e 23/23 (`e2e.mjs`: direct Supabase uploads to both buckets,
-artworks survive a page refresh, payments through the real worker code with fake Razorpay/chains); `nw.mjs` 5/5 (no Worker: browse + admin; password sign-in, wrong password message);
+artworks survive a page refresh, payments through the real worker code with fake Razorpay/chains); `nw.mjs` 5/5 (no Worker: browse + admin; password sign-in, wrong password message); `auth.mjs` 16/16 (sign up incl. short/mismatch/duplicate,
+unconfirmed, wrong password, admin in + survives refresh, non-admin message, forgot → reset link → new password, confirm link, phone);
 SQL policies on real Postgres 16 (admin writes, stranger blocked incl. storage, anon sees only the views, original_path hidden, re-run safe).
 
 ## See it on your wall (founder-approved mock https://claude.ai/artifact/HUo2YJDoXAj5ZbS2FT6DmJ, built 2026-10-31)
@@ -83,5 +88,6 @@ LIVE on https://sanjaydoc.github.io/nisha-gallery/
 - Razorpay restricts crypto/NFT-related payments: Nisha should tell Razorpay she sells art prints and check before taking NFT payments through it.
 
 ## Live status (2026-10-31)
+- Claude pushes directly: sanjaydoc is a Write collaborator + Claude GitHub App installed on joysteadlabs (2026-10-31).
 - Nisha's Supabase project `rzgizjhuzpbngnbhunhu` connected via docs/config.js (publishable key, public). Admin email: joysteadlabs@gmail.com
   (+ dr.sanjayanbu@gmail.com) in gallery_admins. Payments Worker not set up yet (api empty).

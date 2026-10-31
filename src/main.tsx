@@ -1,13 +1,15 @@
 import { StrictMode, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { listArtworks, type Artwork, type PayInfo } from './api';
+import { auth, authReturn, listArtworks, type Artwork, type PayInfo } from './api';
 import { ArtPage, Home, Nav } from './Site';
 import { Admin } from './Admin';
 import { WallPage } from './Wall';
 import { DEMO } from './demo';
 import './styles.css';
 
-const route = () => location.hash.replace(/^#/, '') || '/';
+const route = () => (authReturn && !location.hash.startsWith('#/') ? '/admin' : location.hash.replace(/^#/, '') || '/');
+// Back from a Supabase email link: let supabase-js read the tokens, then show the admin page.
+if (authReturn) auth.getSession().then(() => { if (!location.hash.startsWith('#/')) location.hash = '#/admin'; });
 
 function App() {
   const [r, setR] = useState(route());

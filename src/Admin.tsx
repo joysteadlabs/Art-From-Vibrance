@@ -1,7 +1,7 @@
 /* Admin (founder chose layout A, 2026-10-30): only the gallery admin (GALLERY_ADMINS on the Worker) can upload.
    Each upload makes a normal copy (print + download) and a 1-of-1 NFT copy with its own token number. */
 import { useEffect, useRef, useState } from 'react';
-import { adminArtworks, adminCreate, adminDelete, adminFulfil, adminMe, adminOrders, adminSaveSettings, adminSettings, adminUpdate, adminUpload, CHAINS, auth, inr, type AdminOrder, type Artwork, type Settings } from './api';
+import { clearRecovery, isRecovery, adminArtworks, adminCreate, adminDelete, adminFulfil, adminMe, adminOrders, adminSaveSettings, adminSettings, adminUpdate, adminUpload, CHAINS, auth, inr, type AdminOrder, type Artwork, type Settings } from './api';
 import { explorer } from './pay';
 
 type Tab = 'home' | 'works' | 'orders' | 'payouts';
@@ -41,24 +41,18 @@ export function Admin({ go }: { go: (h: string) => void }) {
       try { await adminMe(); setState('in'); await load(); } catch { setState('denied'); }
     };
     check();
-    const { data } = auth.onAuthStateChange((e) => { if (e === 'SIGNED_IN' || e === 'SIGNED_OUT') check(); });
+    const { data } = auth.onAuthStateChange((e) => { if (e === 'SIGNED_IN' || e === 'SIGNED_OUT' || e === 'USER_UPDATED') setTimeout(check, 0); });
     return () => data.subscription.unsubscribe();
   }, []);
-  const back = location.origin + location.pathname + '#/admin';
-  const signIn = () => auth.signInWithOAuth({ provider: 'google', options: { redirectTo: back } });
-  const [mail, setMail] = useState(''); const [pw, setPw] = useState(''); const [sent, setSent] = useState('');
-  // Email + password (Supabase Auth; the admin user is added in Supabase → Authentication → Users).
-  const pwIn = async (e: { preventDefault(): void }) => { e.preventDefault(); setSent('');
-    if (!mail.trim() || !pw) { setSent('Enter your email and password.'); return; }
-    const { error } = await auth.signInWithPassword({ email: mail.trim(), password: pw });
-    if (error) setSent(error.message === 'Invalid login credentials' ? 'Wrong email or password.' : error.message); };
 
-  if (state !== 'in') return <div className="ad"><div className="ad-gate neu">
+
+  if (state !== 'in' || isRecovery()) return <div className="ad"><div className="ad-gate neu">
     <h1>Gallery <span>admin</span></h1>
-    {state === 'loading' ? <p>Checking your sign-in…</p> : state === 'denied' ? <><p>{email} is not a gallery admin. Only the admin can upload artworks.</p><button className="btn g" onClick={() => auth.signOut()}>Sign out</button></> : <><p>Sign in with the gallery admin Google account to upload artworks and see orders.</p><button className="btn" onClick={signIn}>Sign in with Google</button>
-      <p className="mut sm">or sign in with email</p>
-      <form className="ad-mail" onSubmit={pwIn}><input type="email" autoComplete="username" placeholder="Email" value={mail} onChange={(e) => setMail(e.target.value)} /><input type="password" autoComplete="current-password" placeholder="Password" value={pw} onChange={(e) => setPw(e.target.value)} /><button className="btn" type="submit">Sign in</button></form>
-      {sent && <p className="mut sm">{sent}</p>}</>}
+    {isRecovery() && state !== 'loading' ? <AuthForms /> : state === 'loading' ? <p>Checking your sign-in…</p>
+      : state === 'denied' ? <><p>You are signed in as <b>{email}</b>, but this email is not on the gallery admin list yet, so it cannot upload artworks.</p>
+        <p className="mut sm">Add it in Supabase → SQL Editor: <code>insert into gallery_admins (email) values ('{email}');</code> then reload this page.</p>
+        <button className="btn g" onClick={() => auth.signOut()}>Sign out</button></>
+      : <AuthForms />}
     <button className="lnk" onClick={() => go('#/')}>← Back to the gallery</button>
   </div></div>;
 
@@ -212,4 +206,62 @@ function PayoutsTab({ s, setS, say }: { s: Settings; setS: (s: Settings) => void
       <p className="mut sm">Crypto is paid straight into these wallets. Each payment is checked on its network before the order is marked paid. A coin only shows at checkout once its address is saved.</p>
     </section>
   </div>;
+}
+
+
+/* Sign in · Create account · Forgot password · Set a new password (after the reset email link). Supabase Auth, Nisha's project. */
+type Mode = 'in' | 'up' | 'forgot' | 'reset';
+const siteUrl = () => location.origin + location.pathname;
+const authMsg = (m: string) => /Invalid login credentials/i.test(m) ? 'Wrong email or password.'
+  : /Email not confirmed/i.test(m) ? 'Please confirm your email first: open the link we sent you, then sign in.'
+  : /already registered|already been registered/i.test(m) ? 'This email already has an account. Sign in instead, or use "Forgot password".'
+  : /Password should be at least|weak/i.test(m) ? 'Choose a stronger password (at least 8 characters).'
+  : /signups not allowed|Signups not allowed/i.test(m) ? 'New accounts are switched off in Supabase (Authentication → Sign In / Providers → Allow new users to sign up).'
+  : /rate limit|too many/i.test(m) ? 'Too many emails sent. Please wait a few minutes and try again.'
+  : m;
+export function AuthForms() {
+  const [mode, setMode] = useState<Mode>(() => (isRecovery() ? 'reset' : 'in'));
+  const [mail, setMail] = useState(''); const [pw, setPw] = useState(''); const [pw2, setPw2] = useState('');
+  const [msg, setMsg] = useState<{ t: string; ok?: boolean } | null>(null); const [busy, setBusy] = useState(false);
+  useEffect(() => { const { data } = auth.onAuthStateChange((e) => { if (e === 'PASSWORD_RECOVERY') setMode('reset'); }); return () => data.subscription.unsubscribe(); }, []);
+  const to = (m: Mode) => { setMode(m); setMsg(null); setPw(''); setPw2(''); };
+  const run = async (e: { preventDefault(): void }) => {
+    e.preventDefault(); setMsg(null);
+    const em = mail.trim();
+    if (mode !== 'reset' && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) { setMsg({ t: 'Enter a valid email.' }); return; }
+    if ((mode === 'up' || mode === 'reset') && pw.length < 8) { setMsg({ t: 'Password must be at least 8 characters.' }); return; }
+    if ((mode === 'up' || mode === 'reset') && pw !== pw2) { setMsg({ t: 'The two passwords do not match.' }); return; }
+    if (mode === 'in' && !pw) { setMsg({ t: 'Enter your password.' }); return; }
+    setBusy(true);
+    try {
+      if (mode === 'in') { const { error } = await auth.signInWithPassword({ email: em, password: pw }); if (error) setMsg({ t: authMsg(error.message) }); }
+      else if (mode === 'up') {
+        const { data, error } = await auth.signUp({ email: em, password: pw, options: { emailRedirectTo: siteUrl() } });
+        if (error) setMsg({ t: authMsg(error.message) });
+        else if (data.user && !data.session && (data.user.identities?.length ?? 1) === 0) setMsg({ t: authMsg('already registered') });
+        else if (!data.session) setMsg({ ok: true, t: `Account created. We sent a confirmation link to ${em}: open it, then sign in here.` });
+      } else if (mode === 'forgot') {
+        const { error } = await auth.resetPasswordForEmail(em, { redirectTo: siteUrl() });
+        setMsg(error ? { t: authMsg(error.message) } : { ok: true, t: `If ${em} has an account, a reset link is on its way. Open it on this device.` });
+      } else {
+        const { error } = await auth.updateUser({ password: pw });
+        if (error) setMsg({ t: authMsg(error.message) }); else { clearRecovery(); setMsg({ ok: true, t: 'Password changed. You are signed in.' }); }
+      }
+    } catch (x) { setMsg({ t: (x as Error).message || 'Something went wrong. Please try again.' }); }
+    setBusy(false);
+  };
+  const title = { in: 'Sign in to upload artworks and see orders.', up: 'Create an account with your email and a password.', forgot: 'Enter your email and we will send a link to set a new password.', reset: 'Choose a new password.' }[mode];
+  return <>
+    {mode !== 'reset' && <div className="ad-tabs" role="tablist"><button type="button" role="tab" aria-selected={mode === 'in'} className={mode === 'in' ? 'on' : ''} onClick={() => to('in')}>Sign in</button><button type="button" role="tab" aria-selected={mode === 'up'} className={mode === 'up' ? 'on' : ''} onClick={() => to('up')}>Create account</button></div>}
+    <p>{title}</p>
+    <form className="ad-mail" onSubmit={run} noValidate>
+      {mode !== 'reset' && <input type="email" name="email" autoComplete="username" placeholder="Email" value={mail} onChange={(e) => setMail(e.target.value)} />}
+      {mode !== 'forgot' && <input type="password" name="password" autoComplete={mode === 'in' ? 'current-password' : 'new-password'} placeholder={mode === 'in' ? 'Password' : 'New password (8+ characters)'} value={pw} onChange={(e) => setPw(e.target.value)} />}
+      {(mode === 'up' || mode === 'reset') && <input type="password" name="password2" autoComplete="new-password" placeholder="Type the password again" value={pw2} onChange={(e) => setPw2(e.target.value)} />}
+      <button className="btn" type="submit" disabled={busy}>{busy ? 'Please wait…' : { in: 'Sign in', up: 'Create account', forgot: 'Send reset link', reset: 'Save new password' }[mode]}</button>
+    </form>
+    {msg && <p className={'ad-msg ' + (msg.ok ? 'ok' : 'bad')} role="status">{msg.t}</p>}
+    {mode === 'in' && <button type="button" className="lnk sm" onClick={() => to('forgot')}>Forgot password?</button>}
+    {mode === 'forgot' && <button type="button" className="lnk sm" onClick={() => to('in')}>← Back to sign in</button>}
+  </>;
 }

@@ -39,9 +39,12 @@ const pub = ({ original_path, ...a }: any) => a;
 
 export const demoAuth = {
   getSession: async () => ({ data: { session: { access_token: 'demo', user: { email: 'nisha@nishagallery.com' } } } }),
-  onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }),
+  onAuthStateChange: (_cb?: unknown) => ({ data: { subscription: { unsubscribe() {} } } }),
   signInWithOAuth: async () => ({}),
   signInWithPassword: async () => ({ error: null }),
+  signUp: async () => ({ data: { user: null, session: null }, error: null }),
+  resetPasswordForEmail: async () => ({ error: null }),
+  updateUser: async () => ({ error: null }),
   signOut: async () => { location.hash = '#/'; },
 };
 

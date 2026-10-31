@@ -248,3 +248,10 @@ a{color:inherit}
 @media(max-width:420px){.rv-btns .rv-btn{flex:1}}
 
 .ad-mail{display:flex;flex-direction:column;gap:10px;align-items:stretch}.ad-mail .btn{align-self:flex-start}.ad-mail input{flex:1 1 auto;min-width:0;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:transparent;color:inherit;font:inherit}
+.ad-tabs{display:flex;gap:4px;padding:4px;border-radius:12px;background:rgba(127,140,170,.12);align-self:stretch}
+.ad-tabs button{flex:1;border:0;background:transparent;padding:9px 10px;border-radius:9px;font:600 14px var(--disp,inherit);color:var(--mut);cursor:pointer}
+.ad-tabs button.on{background:#fff;color:var(--blue);box-shadow:0 2px 8px rgba(40,60,110,.12)}
+.ad-mail{align-self:stretch}
+.ad-msg{font-size:14px;line-height:1.45;padding:10px 12px;border-radius:10px;align-self:stretch}.ad-msg.ok{background:rgba(46,160,90,.1);color:#1f7a45}.ad-msg.bad{background:rgba(220,60,60,.09);color:#b3261e}
+.ad-gate code{font-size:12px;word-break:break-all}
+.ad-gate .lnk.sm{font-size:13px;padding:0}

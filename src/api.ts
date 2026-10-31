@@ -7,8 +7,16 @@ export const API = (CFG.api || '').replace(/\/+$/, '');
 // Public (publishable) Supabase key: used only for the admin's Google sign-in.
 export const supabase = DEMO ? (null as never) : createClient(CFG.supabaseUrl!, CFG.supabaseKey!, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
 
+/* Email links from Supabase (confirm account / reset password) land on the site root with tokens in the URL hash.
+   Remember that before supabase-js clears it, so main.tsx can open #/admin (and the new-password form). */
+const AUTH_HASH = /access_token=|type=(recovery|signup)|error_description=/.test(location.hash);
+let recovery = /type=recovery/.test(location.hash);
+export const authReturn = AUTH_HASH;
+export const isRecovery = () => recovery;
+export const clearRecovery = () => { recovery = false; };
 /** Sign-in for the admin page (a stand-in in the demo build, which needs no accounts). */
 export const auth = DEMO ? demoAuth : supabase.auth;
+if (!DEMO) auth.onAuthStateChange((e) => { if (e === 'PASSWORD_RECOVERY') recovery = true; });
 
 export type Artwork = {
   id: string; slug: string; title: string; artist: string; medium: string; about: string; image_url: string;
