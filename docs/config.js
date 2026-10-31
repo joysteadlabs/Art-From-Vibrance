@@ -4,6 +4,6 @@
    api (the payments Worker) is optional: leave it empty until payments are set up. */
 window.GALLERY_CONFIG = {
   api: '',          // optional, payments: the Worker address, e.g. 'https://art-from-vibrance.YOURNAME.workers.dev'
-  supabaseUrl: 'https://rzgizjhuzpbngnbhunhu.supabase.co/rest/v1/',  // Supabase → Project Settings → API → Project URL, e.g. 'https://abcd.supabase.co'
+  supabaseUrl: 'https://rzgizjhuzpbngnbhunhu.supabase.co',  // Supabase → Project Settings → API → Project URL, e.g. 'https://abcd.supabase.co'
   supabaseKey: 'sb_publishable_fvdLvIzydaACTeOfIWBfZg_qdgjuFzk',  // Supabase → Project Settings → API → publishable (anon) key
 };
