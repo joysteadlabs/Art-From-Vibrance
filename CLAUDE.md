@@ -103,6 +103,12 @@ LIVE on https://sanjaydoc.github.io/nisha-gallery/
   say "coming soon" and the admin tab shows a banner with Save disabled. WhatsApp saved as +digits (wa.me link), Instagram as @handle.
 - Tests: scratchpad afvw/pages.mjs 29/29 (desktop + 390px), SQL section 8 on Postgres 16 without default privileges.
 
+### PENDING (founder 2026-11-01: "we will do this later")
+- Nisha still has to: (1) run SQL section 8 (the `alter table gallery_settings … create or replace view gallery_site_public …` block in
+  worker/gallery.sql) in Supabase → SQL Editor; (2) admin → About & Contact: photo, story, city, WhatsApp, email, Instagram → Save;
+  (3) Ctrl+Shift+R and check Works / About / Contact. Also still pending: upload the 4 carousel paintings (bluebird, lake, tiger,
+  still life) via admin Home page, set titles/prices, remove the test artwork "Fd". Payments (her Cloudflare Worker + Razorpay) later.
+
 ## Live status (2026-10-31)
 - **WORKING (founder confirmed 2026-10-31):** Nisha signs in (email + password), uploads save to her Supabase and stay after refresh.
   Fix chain that got there: config.js filled (URL had '/rest/v1/' → stripped), setup SQL section 6 run, password set via SQL
